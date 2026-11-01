@@ -1,6 +1,6 @@
 package: community.lazycat.app.kimai
 name: Kimai
-version: 0.0.0
+version: 2.71.0
 description: "Open-source time tracker with projects, activities, customers and reports."
 min_os_version: "1.5.0"
 homepage: https://github.com/kimai/kimai
