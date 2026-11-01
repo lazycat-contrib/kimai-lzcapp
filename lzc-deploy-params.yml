@@ -1,0 +1,12 @@
+params:
+  - id: admin_password
+    type: secret
+    name: Admin password
+    description: "Password for the built-in admin account, at least 12 characters. Applied only when the admin user is first created."
+    default_value: "$random(len=20)"
+    optional: false
+locales:
+  zh:
+    admin_password:
+      name: 管理员密码
+      description: 内置 admin 账号的密码，至少 12 位。仅在首次创建管理员时写入，之后重启不会覆盖。

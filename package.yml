@@ -1,0 +1,18 @@
+package: community.lazycat.app.kimai
+name: Kimai
+version: 0.0.0
+description: "Open-source time tracker with projects, activities, customers and reports."
+min_os_version: "1.5.0"
+homepage: https://github.com/kimai/kimai
+author: kimai
+license: AGPL-3.0
+permissions:
+  required:
+    - net.internet
+locales:
+  zh:
+    name: Kimai
+    description: "自建工时记录：按客户、项目、活动记时间，出报表和统计，适合自由职业者和团队核算工时。"
+  en:
+    name: Kimai
+    description: "Open-source time tracker with projects, activities, customers and reports."

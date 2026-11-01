@@ -1,0 +1,70 @@
+application:
+  subdomain: kimai
+  multi_instance: false
+  upstreams:
+    - location: /package-licenses/
+      backend: file:///lzcapp/pkg/content/licenses/
+    - location: /
+      backend: http://kimai:80/
+
+services:
+  db:
+    image: docker.1ms.run/library/mariadb:10.11
+    environment:
+      - MARIADB_ROOT_PASSWORD={{ stable_secret "kimai_db_root" | replace "\r" "" | replace "\n" "" }}
+      - MARIADB_DATABASE=kimai
+      - MARIADB_USER=kimai
+      - |-
+        MARIADB_PASSWORD={{ stable_secret "kimai_db_password" | replace "\r" "" | replace "\n" "" }}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mariadb-admin ping -h 127.0.0.1 -u root -p"$$MARIADB_ROOT_PASSWORD"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    binds:
+      - /lzcapp/var/db:/var/lib/mysql
+
+  kimai:
+    # upstream: kimai/kimai2:2.71.0
+    image: docker.1ms.run/kimai/kimai2:2.71.0
+    depends_on:
+      - db
+    environment:
+      - |-
+        DATABASE_URL=mysql://kimai:{{ stable_secret "kimai_db_password" | replace "\r" "" | replace "\n" "" }}@db:3306/kimai?charset=utf8mb4&serverVersion=10.11
+      - |-
+        APP_SECRET={{ stable_secret "kimai_app_secret" | replace "\r" "" | replace "\n" "" }}
+      - ADMINMAIL=admin@example.com
+      - |-
+        ADMINPASS={{ stable_secret "kimai_admin_password" | replace "\r" "" | replace "\n" "" }}
+      - |-
+        TRUSTED_HOSTS=.*
+      - |-
+        TRUSTED_PROXIES=.*
+      - APP_ENV=prod
+      - TZ=Asia/Shanghai
+    binds:
+      - /lzcapp/var/kimai:/opt/kimai/var
+
+usage: |
+  Kimai 是自建的工时记录工具：按客户、项目、活动记时间，自动出报表和统计。
+
+  使用方法：
+  1. 打开应用，用用户名 admin 和你设置的密码登录。
+  2. 先建客户（customer）和项目（project），再建活动（activity）。
+  3. 开始计时或手动补录工时，在报表页看汇总。
+
+  数据与安全：
+  - 数据库在 MariaDB（/lzcapp/var/db），应用数据与上传的 logo 在 /lzcapp/var/kimai。卸载应用会一并删除，请定期备份。
+  - 数据库密码与应用密钥由平台稳定密钥生成，每个部署不同，不写成固定值。
+  - 管理员密码由部署参数控制，默认随机生成；账号名固定为 admin，不存在内置弱口令。
+  - 该密码只在首次启动创建管理员时生效（上游用 --ignore-existing，重启不会覆盖你后来改的密码）。
+  - 应用经懒猫入口鉴权访问。
+
+  说明：
+  - 本应用包含两个容器（应用本体 + MariaDB），启动顺序由依赖关系保证。
+  - 未配置邮件服务，邀请成员、找回密码等依赖邮件的功能不可用。
+  - 未做真机验证：登录、建客户/项目、记工时、报表以及重启后持久化均未在设备上实测。
